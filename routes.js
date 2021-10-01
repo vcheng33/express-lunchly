@@ -15,7 +15,7 @@ const router = new express.Router();
 
 router.get("/", async function (req, res, next) {
   const customers = await Customer.all();
-  
+
   console.log("in solution routes file");
   console.log(customers);
 
@@ -28,6 +28,14 @@ router.get("/search", async function (req, res, next) {
   const name = req.query.name;
 
   const customers = await Customer.find(name);
+
+  return res.render("customer_list.html", { customers });
+});
+
+/** Best Customers: shows list of 10 customers with most reservations */
+
+router.get("/best", async function (req, res, next) {
+  const customers = await Customer.getTop10();
 
   return res.render("customer_list.html", { customers });
 });
