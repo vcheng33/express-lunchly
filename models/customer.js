@@ -159,6 +159,14 @@ class Customer {
 
     return customers.map(customer => new Customer(customer));
   }
+
+  static async deleteAll() {
+      await db.query(`DELETE from customers`);
+  }
 }
+
+/** delete this customer. */
+
+
 
 module.exports = Customer;
