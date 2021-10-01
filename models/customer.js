@@ -96,7 +96,29 @@ class Customer {
     }
   }
 
+  static async find(name) {
+    // console.log("name=",name);
+    const results = await db.query(
+          `SELECT id,
+                  first_name AS "firstName",
+                  last_name  AS "lastName",
+                  phone,
+                  notes
+           FROM customers
+           WHERE firstName = $1 OR lastName = $1`,
+        [name],
+    );
 
+    const customers = results.rows;
+
+    if (length(customers) === 0) {
+      const err = new Error(`No customers found.`);
+      err.status = 404;
+      throw err;
+    }
+    
+    return customers.map(customer => new Customer(customer));
+  }
 }
 
 module.exports = Customer;
