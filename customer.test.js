@@ -12,27 +12,33 @@ const Reservation = require("./models/reservation");
 let testCustomer;
 let testReservation;
 
-beforeEach(function () {
+beforeEach(async function () {
 
-    testCustomer = new Customer({
-        "id": 1000000,
-        "firstName": "testFirstName",
-        "lastName": "testLastName",
-        "phone": "555-555-5555",
-        "notes": "test reservation notes"
-    })
+    let result = await db.query(
+        `INSERT INTO customers (first_name, last_name, phone, notes)
+             VALUES ('testFirstName', 'testLastName', '555-555-5555', 'test reservation notes')
+             RETURNING id, first_name AS "firstName", last_name AS "lastName", phone, notes`
+    );
+    console.log("result.rows[0]:", result.rows[0]);
+    testCustomer = new Customer(result.rows[0]);
+    console.log("testCustomer:", testCustomer);
+    
+    let resResult = await db.query(
+        `INSERT INTO reservations (customer_id, start_at, num_guests, notes)
+             VALUES ($1, '2018-10-27 11:45:46', '2', 'test reservation notes')
+             RETURNING id, customer_id AS "customerId", start_at AS "startAt", num_guests AS "numGuests", notes`,
+             [testCustomer.id]
+    );
+    testReservation = new Reservation(resResult.rows[0]);
+    console.log("testCustomer:", testCustomer);
+    console.log("testReservation:", testReservation);
 
-    testReservation = new Reservation ({
-        "id": 999999,
-        "customerId": 1000000,
-        "numGuests": 2,
-        "startAt": "2021-01-01, 9:00 p",
-        "notes": "test reservation notes"
-    }) 
 });
 
-afterEach(function () {
-    Customer.deleteAll();
+afterEach(async function () {
+    await Reservation.deleteAll();
+    await Customer.deleteAll();
+    
 })
 
 describe("Test fullName() method", function () {
@@ -45,7 +51,7 @@ describe("Test fullName() method", function () {
 describe("Test all() class method", function () {
     test("Test gets an array of 1 with testCustomer", async function() {
         const customers = await Customer.all();
-        expect(customers).toContain(testCustomer);
+        expect(customers).toEqual([testCustomer]);
         expect(customers.length).toEqual(1);
     });
 });
@@ -55,6 +61,6 @@ describe("Test get Reservations",  function () {
         const reservations = await testCustomer.getReservations();
 
         expect(reservations).toEqual([testReservation]);
-        expact(reservations.length).toEqual(1);
+        expect(reservations.length).toEqual(1);
     })
 })

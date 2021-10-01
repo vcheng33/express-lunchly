@@ -67,6 +67,11 @@ class Reservation {
       );
     }
   }
+
+  /** Delete all reservations */
+  static async deleteAll() {
+    await db.query(`DELETE from reservations`);
+  }
 }
 
 
