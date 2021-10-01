@@ -12,8 +12,13 @@ class Customer {
     this.id = id;
     this.firstName = firstName;
     this.lastName = lastName;
+    this.fullName = this.fullName();
     this.phone = phone;
     this.notes = notes;
+  }
+
+  fullName() {
+    return `${this.firstName} ${this.lastName}`;
   }
 
   /** find all customers. */
@@ -90,6 +95,8 @@ class Customer {
       );
     }
   }
+
+
 }
 
 module.exports = Customer;
