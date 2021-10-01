@@ -18,6 +18,7 @@ class Customer {
     this.notes = notes;
   }
 
+  /** Get the full name. */
   fullName() {
     return `${this.firstName} ${this.lastName}`;
   }
@@ -97,8 +98,15 @@ class Customer {
     }
   }
 
+
+  /** Find customers whose firstName and/or lastName match the search query.*/
   static async find(name) {
     console.log("got to find");
+    
+    const searchTerms = name.toLowerCase().split(" "); // [diogo]
+    
+    const [ searchTerm1, searchTerm2 ] = searchTerms; // firstName = diogo; lastName = undefined
+    
     const results = await db.query(
       `SELECT id,
                   first_name AS "firstName",
@@ -106,8 +114,13 @@ class Customer {
                   phone,
                   notes
            FROM customers
-           WHERE lower(first_name) = $1 OR lower(last_name) = $1`,
-      [name.toLowerCase()],
+           WHERE 
+              lower(first_name) = $1
+              OR lower(last_name) = $1
+              OR (lower(first_name) = $1 and lower(last_name) = $2)
+              OR (lower(first_name) = $2 and lower(last_name) = $1)
+                `
+                , [searchTerm1, searchTerm2],
     );
 
     const customers = results.rows;
@@ -121,41 +134,18 @@ class Customer {
     return customers.map(customer => new Customer(customer));
   }
 
+  // OR lower(last_name) IN $1
+  // OR (lower(first_name) IN $1
+  //   AND lower(last_name) IN $1)
+
+  /** Get 10 customers with most number of reservations, ordered by most reservations. */
   static async getTop10() {
-    // const resResults = await db.query(
-    //   `SELECT customer_id AS "customerId",
-    //           COUNT(id) AS "numReservations"
-    //     FROM reservations
-    //     GROUP BY customerId
-    //     ORDER BY numReservations DESC
-    //     LIMIT 10
-    //   `
-    // );
-    // const top10 = resResults.rows; // [{"customerId": "1", "numReservations":"10"}, {"customerId": "2", "numReservations":"9"},]
-    // const top10Ids = top10.map(o => o.customerId); // [ 1, 2, 3, ...etc]
-
-    // const custResults = await db.query(
-    //   `SELECT id,
-    //           first_name AS "firstName",
-    //           last_name  AS "lastName",
-    //           phone,
-    //           notes
-    //     FROM customers
-    //     WHERE id IN $1
-    //   `, [top10Ids]
-    // );
-
-    // const customers = custResults.rows; // [{"id":"1", "firstName":"Jessica", "lastName": "Rabbit", "phone":"", "notes":""}]
-    // const customers2 = customers.map(c => new Customer(c));
-    // customers.top10 = top10;
-
     const results = await db.query(
       `SELECT c.id AS "id",
                     c.first_name AS "firstName",
                     c.last_name  AS "lastName",
                     phone,
                     c.notes AS "notes"
-                    
               FROM customers AS c
                     JOIN reservations as r
                     ON r.customer_id = c.id
@@ -170,7 +160,5 @@ class Customer {
     return customers.map(customer => new Customer(customer));
   }
 }
-
-
 
 module.exports = Customer;
