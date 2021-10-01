@@ -97,7 +97,7 @@ class Customer {
   }
 
   static async find(name) {
-    // console.log("name=",name);
+    console.log("got to find");
     const results = await db.query(
           `SELECT id,
                   first_name AS "firstName",
@@ -105,13 +105,13 @@ class Customer {
                   phone,
                   notes
            FROM customers
-           WHERE firstName = $1 OR lastName = $1`,
-        [name],
+           WHERE lower(first_name) = $1 OR lower(last_name) = $1`,
+        [name.toLowerCase()],
     );
 
     const customers = results.rows;
 
-    if (length(customers) === 0) {
+    if (customers.length === 0) {
       const err = new Error(`No customers found.`);
       err.status = 404;
       throw err;
@@ -120,5 +120,7 @@ class Customer {
     return customers.map(customer => new Customer(customer));
   }
 }
+
+
 
 module.exports = Customer;

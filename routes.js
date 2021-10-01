@@ -9,19 +9,28 @@ const Reservation = require("./models/reservation");
 
 const router = new express.Router();
 
+
+
 /** Homepage: show list of customers. */
 
 router.get("/", async function (req, res, next) {
-  //Get the form response
-  //If !form response, then we're landing on this page, and
-  //we want to show all customers
-  // console.log(req.body);
   const customers = await Customer.all();
+  
   console.log("in solution routes file");
   console.log(customers);
+
   return res.render("customer_list.html", { customers });
 });
 
+/** Handle findings customers by name */
+router.get("/search", async function (req, res, next) {
+  console.log("got to search")
+  const name = req.query.name;
+
+  const customers = await Customer.find(name);
+
+  return res.render("customer_list.html", { customers });
+});
 
 /** Form to add a new customer. */
 
@@ -89,15 +98,6 @@ router.post("/:id/add-reservation/", async function (req, res, next) {
   return res.redirect(`/${customerId}/`);
 });
 
-/** Handle findings customers by name */
-router.get("/search", async function (req, res, next) {
-  // console.log("got here")
-  const name = req.body.name;
-  console.log("name=",name);
 
-  const customers = await Customer.find(name);
-
-  return res.render("customer_list.html", { customers });
-});
 
 module.exports = router;
